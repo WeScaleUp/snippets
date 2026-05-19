@@ -17,6 +17,25 @@ define( 'WSU_PLUGIN_FILE', __FILE__ );
 define( 'WSU_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'WSU_GITHUB_REPO', 'wescaleup/snippets' );
 
+// ─── Bij activatie: zorg dat alle modules standaard aan staan ─────────────────
+register_activation_hook( __FILE__, function () {
+    if ( get_option( 'wsu_disabled_modules' ) === false ) {
+        update_option( 'wsu_disabled_modules', [] );
+    }
+} );
+
+// ─── Bij update: reset disabled_modules naar leeg als het een oude waarde heeft ─
+add_action( 'upgrader_process_complete', function ( $upgrader, $options ) {
+    if (
+        $options['action'] === 'update' &&
+        $options['type'] === 'plugin' &&
+        isset( $options['plugins'] ) &&
+        in_array( plugin_basename( WSU_PLUGIN_FILE ), $options['plugins'], true )
+    ) {
+        update_option( 'wsu_disabled_modules', [] );
+    }
+}, 10, 2 );
+
 // ─── Auto-updater ────────────────────────────────────────────────────────────
 require_once WSU_PLUGIN_DIR . 'includes/class-updater.php';
 new WSU_Updater( WSU_PLUGIN_FILE, WSU_GITHUB_REPO, WSU_VERSION );
