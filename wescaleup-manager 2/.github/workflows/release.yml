@@ -11,13 +11,16 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          path: wescaleup-manager
 
       - name: Maak plugin ZIP
         run: |
-          mkdir -p build/wescaleup-manager
-          cp -r assets includes modules README.md wescaleup-manager.php build/wescaleup-manager/
-          cd build
-          zip -r ../wescaleup-manager.zip wescaleup-manager/ --exclude "*.DS_Store"
+          zip -r wescaleup-manager.zip wescaleup-manager/ \
+            --exclude "wescaleup-manager/.git/*" \
+            --exclude "wescaleup-manager/.github/*" \
+            --exclude "wescaleup-manager/*.DS_Store" \
+            --exclude "wescaleup-manager/README.md"
 
       - name: Upload ZIP als release asset
         uses: softprops/action-gh-release@v2
