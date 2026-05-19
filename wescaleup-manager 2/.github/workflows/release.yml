@@ -1,0 +1,24 @@
+name: Build plugin ZIP bij release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Maak plugin ZIP
+        run: |
+          zip -r wescaleup-manager.zip wescaleup-manager/ --exclude "*.DS_Store" --exclude "*/.git/*"
+
+      - name: Upload ZIP als release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wescaleup-manager.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
