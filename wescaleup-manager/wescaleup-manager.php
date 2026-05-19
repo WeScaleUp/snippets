@@ -21,6 +21,14 @@ define( 'WSU_GITHUB_REPO', 'wescaleup/snippets' );
 require_once WSU_PLUGIN_DIR . 'includes/class-updater.php';
 new WSU_Updater( WSU_PLUGIN_FILE, WSU_GITHUB_REPO, WSU_VERSION );
 
+// Automatisch updaten zonder bevestiging
+add_filter( 'auto_update_plugin', function ( $update, $item ) {
+    if ( isset( $item->plugin ) && $item->plugin === plugin_basename( WSU_PLUGIN_FILE ) ) {
+        return true;
+    }
+    return $update;
+}, 10, 2 );
+
 // ─── Functionaliteit laden ────────────────────────────────────────────────────
 $modules = [
     'modules/beveiliging.php',
