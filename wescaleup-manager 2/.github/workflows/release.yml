@@ -14,9 +14,10 @@ jobs:
 
       - name: Maak plugin ZIP
         run: |
-          mkdir -p wescaleup-manager
-          cp -r assets includes modules README.md wescaleup-manager.php wescaleup-manager/
-          zip -r wescaleup-manager.zip wescaleup-manager/ --exclude "*.DS_Store"
+          mkdir -p build/wescaleup-manager
+          cp -r assets includes modules README.md wescaleup-manager.php build/wescaleup-manager/
+          cd build
+          zip -r ../wescaleup-manager.zip wescaleup-manager/ --exclude "*.DS_Store"
 
       - name: Upload ZIP als release asset
         uses: softprops/action-gh-release@v2
