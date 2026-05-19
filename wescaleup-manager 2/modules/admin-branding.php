@@ -28,7 +28,24 @@ add_action( 'login_enqueue_scripts', function () {
     );
 } );
 
+// ── Login-pagina: achtergrondafbeelding ───────────────────────────────────────
+add_action( 'login_head', function () {
+    $foto_url = get_option( 'wsu_login_foto', '' );
+
+    // Fallback naar de standaard WeScaleUp foto
+    if ( empty( $foto_url ) ) {
+        $foto_url = 'https://code.wescaleup.nl/media/foto-login.jpg';
+    }
+
+    echo '<style>
+        body.login {
+            background-image: url(' . esc_url( $foto_url ) . ') !important;
+            background-size: cover !important;
+            background-position: center center !important;
+            background-repeat: no-repeat !important;
+        }
+    </style>';
+} );
+
 add_filter( 'login_headerurl',  fn() => home_url() );
 add_filter( 'login_headertext', fn() => 'WeScaleUp' );
-
-
