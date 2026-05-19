@@ -74,16 +74,26 @@ class WSU_Settings {
 
     public function save_settings(): void {
         if ( ! isset( $_POST['wsu_save_settings'] ) || ! check_admin_referer( 'wsu_settings_save' ) ) return;
-        $disabled = [];
-        foreach ( array_keys( self::modules() ) as $module ) {
-            if ( empty( $_POST['wsu_modules'][ $module ] ) ) $disabled[] = $module;
-        }
-        update_option( self::OPTION_KEY, $disabled );
-        update_option( self::CUSTOM_PHP_KEY, isset( $_POST['wsu_custom_php'] ) ? wp_unslash( $_POST['wsu_custom_php'] ) : '' );
 
-        // Login foto opslaan
-        $login_foto = isset( $_POST['wsu_login_foto'] ) ? esc_url_raw( wp_unslash( $_POST['wsu_login_foto'] ) ) : '';
-        update_option( 'wsu_login_foto', $login_foto );
+        $tab = isset( $_POST['wsu_current_tab'] ) ? sanitize_key( $_POST['wsu_current_tab'] ) : 'modules';
+
+        if ( $tab === 'modules' ) {
+            $disabled = [];
+            foreach ( array_keys( self::modules() ) as $module ) {
+                if ( empty( $_POST['wsu_modules'][ $module ] ) ) $disabled[] = $module;
+            }
+            update_option( self::OPTION_KEY, $disabled );
+        }
+
+        if ( $tab === 'custom' ) {
+            update_option( self::CUSTOM_PHP_KEY, isset( $_POST['wsu_custom_php'] ) ? wp_unslash( $_POST['wsu_custom_php'] ) : '' );
+        }
+
+        if ( $tab === 'login' ) {
+            $login_foto = isset( $_POST['wsu_login_foto'] ) ? esc_url_raw( wp_unslash( $_POST['wsu_login_foto'] ) ) : '';
+            update_option( 'wsu_login_foto', $login_foto );
+        }
+
         add_action( 'admin_notices', function () { echo '<div class="notice notice-success is-dismissible"><p>✅ Instellingen opgeslagen.</p></div>'; } );
     }
 
@@ -162,6 +172,7 @@ class WSU_Settings {
             <?php if ( $tab === 'modules' ) : ?>
             <form method="post" action="">
                 <?php wp_nonce_field( 'wsu_settings_save' ); ?>
+                <input type="hidden" name="wsu_current_tab" value="modules">
                 <div class="wsu-section">
                     <h2>Modules</h2>
                     <p>Standaard WeScaleUp functionaliteit. Zet een module uit om hem op <strong>deze website</strong> te deactiveren.</p>
@@ -260,6 +271,7 @@ class WSU_Settings {
             <?php elseif ( $tab === 'custom' ) : ?>
             <form method="post" action="">
                 <?php wp_nonce_field( 'wsu_settings_save' ); ?>
+                <input type="hidden" name="wsu_current_tab" value="custom">
                 <div class="wsu-section">
                     <h2>Losse code</h2>
                     <p>PHP code die <strong>alleen op deze website</strong> wordt uitgevoerd. Geen <code>&lt;?php</code> tag nodig.<br>
@@ -276,6 +288,7 @@ class WSU_Settings {
             <?php elseif ( $tab === 'login' ) : ?>
             <form method="post" action="">
                 <?php wp_nonce_field( 'wsu_settings_save' ); ?>
+                <input type="hidden" name="wsu_current_tab" value="login">
                 <div class="wsu-section">
                     <h2>Login achtergrondafbeelding</h2>
                     <p>Stel een afbeelding in voor het inlogscherm van <strong>deze website</strong>. Laat leeg om de standaard WeScaleUp foto te gebruiken.</p>
