@@ -30,9 +30,3 @@ add_action( 'login_enqueue_scripts', function () {
 
 add_filter( 'login_headerurl',  fn() => home_url() );
 add_filter( 'login_headertext', fn() => 'WeScaleUp' );
-
-// ── Hello Elementor verbergen in thema-overzicht ──────────────────────────────
-add_filter( 'wp_prepare_themes_for_js', function ( $prepared_themes ) {
-    unset( $prepared_themes['hello-elementor'] );
-    return $prepared_themes;
-} );
