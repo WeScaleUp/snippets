@@ -29,18 +29,23 @@ add_filter( 'auto_update_plugin', function ( $update, $item ) {
     return $update;
 }, 10, 2 );
 
-// ─── Functionaliteit laden ────────────────────────────────────────────────────
+// ─── Instellingen ─────────────────────────────────────────────────────────────
+require_once WSU_PLUGIN_DIR . 'includes/class-settings.php';
+new WSU_Settings();
+
+// ─── Functionaliteit laden (alleen actieve modules) ───────────────────────────
 $modules = [
-    'modules/beveiliging.php',
-    'modules/admin-branding.php',
-    'modules/svg-upload.php',
-    'modules/reacties.php',
-    'modules/password-page.php',
-    'modules/dashboard.php',
+    'beveiliging',
+    'admin-branding',
+    'svg-upload',
+    'reacties',
+    'password-page',
+    'dashboard',
 ];
 
 foreach ( $modules as $module ) {
-    $path = WSU_PLUGIN_DIR . $module;
+    if ( ! WSU_Settings::is_enabled( $module ) ) continue;
+    $path = WSU_PLUGIN_DIR . 'modules/' . $module . '.php';
     if ( file_exists( $path ) ) {
         require_once $path;
     }
