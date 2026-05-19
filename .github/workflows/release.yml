@@ -1,0 +1,39 @@
+name: Build plugin ZIP bij release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          path: wescaleup-manager
+
+      - name: Haal versienummer op uit tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Pas versienummer aan in plugin
+        run: |
+          sed -i "s/ \* Version:.*/ * Version:     ${{ steps.version.outputs.VERSION }}/" wescaleup-manager/wescaleup-manager.php
+          sed -i "s/define( 'WSU_VERSION',     '.*' );/define( 'WSU_VERSION',     '${{ steps.version.outputs.VERSION }}' );/" wescaleup-manager/wescaleup-manager.php
+
+      - name: Maak plugin ZIP
+        run: |
+          zip -r wescaleup-manager.zip wescaleup-manager/ \
+            --exclude "wescaleup-manager/.git/*" \
+            --exclude "wescaleup-manager/.github/*" \
+            --exclude "wescaleup-manager/README.md" \
+            --exclude "*.DS_Store"
+
+      - name: Upload ZIP als release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: wescaleup-manager.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
