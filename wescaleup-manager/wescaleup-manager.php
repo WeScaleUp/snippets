@@ -50,3 +50,4 @@ foreach ( $modules as $module ) {
         require_once $path;
     }
 }
+add_action( 'init', [ 'WSU_Settings', 'run_custom_php' ] );
