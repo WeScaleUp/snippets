@@ -52,5 +52,9 @@ foreach ( $modules as $module ) {
 }
 
 // ─── Custom PHP per site ──────────────────────────────────────────────────────
+// Prioriteit 0: zorgt dat register_post_type/register_taxonomy in snippets
+// vroeg genoeg draaien zodat WordPress ze correct registreert.
 add_action( 'init', [ 'WSU_Settings', 'run_custom_php' ], 0 );
+
+// ─── Site-specifieke snippets ─────────────────────────────────────────────────
 add_action( 'init', [ 'WSU_Settings', 'run_snippets' ], 0 );
