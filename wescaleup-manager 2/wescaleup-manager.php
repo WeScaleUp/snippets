@@ -52,7 +52,5 @@ foreach ( $modules as $module ) {
 }
 
 // ─── Custom PHP per site ──────────────────────────────────────────────────────
-add_action( 'init', [ 'WSU_Settings', 'run_custom_php' ] );
-
-// ─── Site-specifieke snippets ─────────────────────────────────────────────────
-add_action( 'init', [ 'WSU_Settings', 'run_snippets' ] );
+add_action( 'init', [ 'WSU_Settings', 'run_custom_php' ], 0 );
+add_action( 'init', [ 'WSU_Settings', 'run_snippets' ], 0 );
