@@ -27,9 +27,16 @@ class WSU_Settings {
     }
 
     public static function run_snippets(): void {
-        foreach ( self::get_snippets() as $snippet ) {
+        foreach ( self::get_snippets() as $id => $snippet ) {
             if ( ! empty( $snippet['active'] ) && ! empty( trim( $snippet['code'] ) ) ) {
-                eval( $snippet['code'] );
+                try {
+                    eval( $snippet['code'] );
+                } catch ( \Throwable $e ) {
+                    // Snippet fout — log naar debug.log maar laat de site draaien
+                    if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+                        error_log( '[WeScaleUp Manager] Snippet fout in "' . ( $snippet['name'] ?? $id ) . '": ' . $e->getMessage() );
+                    }
+                }
             }
         }
     }
@@ -37,7 +44,13 @@ class WSU_Settings {
     public static function run_custom_php(): void {
         $code = get_option( self::CUSTOM_PHP_KEY, '' );
         if ( ! empty( trim( $code ) ) ) {
-            eval( $code );
+            try {
+                eval( $code );
+            } catch ( \Throwable $e ) {
+                if ( defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG ) {
+                    error_log( '[WeScaleUp Manager] Custom PHP fout: ' . $e->getMessage() );
+                }
+            }
         }
     }
 
