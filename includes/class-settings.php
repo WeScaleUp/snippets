@@ -64,20 +64,25 @@ class WSU_Settings {
         add_filter( 'plugin_action_links_' . plugin_basename( WSU_PLUGIN_FILE ), [ $this, 'add_settings_link' ] );
     }
 
+    // Submenu-item onder Plugins (geen eigen hoofdmenu meer)
     public function add_menu(): void {
-        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6991 5346" fill="currentColor" style="fill-rule:evenodd;clip-rule:evenodd;"><path d="M2171.801,491.308l-152.688,939.946l871.125,141.513l152.692,-939.946l-871.129,-141.513Z"/><path d="M13.551,2736.462l259.154,-1595.508c17.429,-107.583 117.525,-179.625 225.108,-162.054l489.167,79.392c107.446,17.433 179.621,117.525 162.192,224.975l-207.133,1274.525c-51.475,317.304 116.846,504.554 358.838,543.912c252.754,40.854 462.75,-96.008 512.454,-402.417l206.862,-1274.529c17.567,-107.446 117.525,-179.625 219.662,-163.008l489.3,79.529c107.583,17.429 179.763,117.388 162.192,224.971l-259.154,1595.513c-97.371,599.608 -600.288,963.621 -1473.217,813.55c-786.588,-127.738 -1245.25,-623.442 -1145.425,-1238.85" fill-rule="nonzero"/><path d="M3228.343,701.579l-484.946,-672.875c-22.196,-30.917 -65.229,-37.996 -96.279,-15.662l-672.875,484.808c-49.846,35.95 -31.325,114.254 29.279,124.196l1157.817,187.933c60.604,9.942 103.092,-58.558 67.004,-108.4" fill-rule="nonzero"/><path d="M5357.26,3169.875c55.017,-338.683 -125.288,-621.804 -485.354,-680.363c-328.2,-53.25 -622.079,125.287 -681.454,490.8c-58.558,360.338 163.825,622.758 491.887,675.871c360.204,58.558 620.854,-152.933 674.921,-486.308m881.912,143.267c-115.346,709.779 -688.533,1350.788 -1538.037,1212.7c-365.65,-59.375 -585.858,-233.142 -714.821,-458.254l-181.667,1118.467c-16.479,102.133 -116.571,174.175 -224.154,156.742l-489.442,-79.529c-102.133,-16.613 -174.037,-116.571 -157.562,-218.571l549.358,-3382.354c17.433,-107.583 117.525,-179.625 219.663,-163.008l537.783,87.292c80.621,13.075 134.55,88.108 121.475,168.729l-20.021,123.654c193.654,-172.679 457.438,-267.871 823.088,-208.496c849.5,137.954 1190.5,927.4 1074.338,1642.629" fill-rule="nonzero"/></svg>';
-
-        add_menu_page( 'WeScaleUp&#174; Manager', 'WeScaleUp<sup style="font-size:8px;">&#174;</sup>', 'manage_options', 'wescaleup-manager', [ $this, 'render_page' ], 'data:image/svg+xml;base64,' . base64_encode( $svg ), 2 );
-        add_action( 'admin_head', function () { echo '<style>#toplevel_page_wescaleup-manager .wp-menu-name sup{line-height:0;}</style>'; } );
+        add_submenu_page(
+            'plugins.php',
+            'WeScaleUp&#174; Manager',
+            'WeScaleUp Manager',
+            'manage_options',
+            'wescaleup-manager',
+            [ $this, 'render_page' ]
+        );
     }
 
     public function add_settings_link( array $links ): array {
-        array_unshift( $links, '<a href="' . esc_url( admin_url( 'admin.php?page=wescaleup-manager' ) ) . '">Instellingen</a>' );
+        array_unshift( $links, '<a href="' . esc_url( admin_url( 'plugins.php?page=wescaleup-manager' ) ) . '">Instellingen</a>' );
         return $links;
     }
 
     public function enqueue_styles( string $hook ): void {
-        if ( $hook !== 'toplevel_page_wescaleup-manager' ) return;
+        if ( $hook !== 'plugins_page_wescaleup-manager' ) return;
         wp_enqueue_code_editor( [ 'type' => 'text/x-php' ] );
         wp_enqueue_script( 'wp-theme-plugin-editor' );
         wp_enqueue_style( 'wp-codemirror' );
@@ -123,7 +128,7 @@ class WSU_Settings {
         ];
         $snippets[ $id ?: 'snip_' . uniqid() ] = $data;
         update_option( self::SNIPPETS_KEY, $snippets );
-        wp_safe_redirect( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets&saved=1' ) );
+        wp_safe_redirect( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets&saved=1' ) );
         exit;
     }
 
@@ -133,7 +138,7 @@ class WSU_Settings {
         $snippets = self::get_snippets();
         unset( $snippets[ sanitize_key( $_POST['wsu_snippet_id'] ?? '' ) ] );
         update_option( self::SNIPPETS_KEY, $snippets );
-        wp_safe_redirect( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets' ) );
+        wp_safe_redirect( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets' ) );
         exit;
     }
 
@@ -146,7 +151,7 @@ class WSU_Settings {
             $snippets[ $id ]['active'] = empty( $snippets[ $id ]['active'] );
             update_option( self::SNIPPETS_KEY, $snippets );
         }
-        wp_safe_redirect( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets' ) );
+        wp_safe_redirect( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets' ) );
         exit;
     }
 
@@ -172,12 +177,12 @@ class WSU_Settings {
             </div>
 
             <div class="wsu-tabs">
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=modules' ) ); ?>" class="wsu-tab <?php echo $tab === 'modules' ? 'is-active' : ''; ?>">⚙️ Modules</a>
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets' ) ); ?>" class="wsu-tab <?php echo $tab === 'snippets' ? 'is-active' : ''; ?>">
+                <a href="<?php echo esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=modules' ) ); ?>" class="wsu-tab <?php echo $tab === 'modules' ? 'is-active' : ''; ?>">⚙️ Modules</a>
+                <a href="<?php echo esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets' ) ); ?>" class="wsu-tab <?php echo $tab === 'snippets' ? 'is-active' : ''; ?>">
                     🧩 Snippets<?php if ( ! empty( $snippets ) ) echo ' <span class="wsu-badge">' . count( $snippets ) . '</span>'; ?>
                 </a>
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=custom' ) ); ?>" class="wsu-tab <?php echo $tab === 'custom' ? 'is-active' : ''; ?>">📝 Losse code</a>
-                <a href="<?php echo esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=login' ) ); ?>" class="wsu-tab <?php echo $tab === 'login' ? 'is-active' : ''; ?>">🖼️ Login</a>
+                <a href="<?php echo esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=custom' ) ); ?>" class="wsu-tab <?php echo $tab === 'custom' ? 'is-active' : ''; ?>">📝 Losse code</a>
+                <a href="<?php echo esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=login' ) ); ?>" class="wsu-tab <?php echo $tab === 'login' ? 'is-active' : ''; ?>">🖼️ Login</a>
             </div>
 
             <?php if ( isset( $_GET['saved'] ) ) echo '<div class="notice notice-success is-dismissible"><p>✅ Snippet opgeslagen.</p></div>'; ?>
@@ -238,7 +243,7 @@ class WSU_Settings {
                     </div>
                     <div style="display:flex;gap:10px;margin-top:16px;">
                         <button type="submit" class="wsu-btn"><?php echo $editing ? 'Opslaan' : 'Snippet toevoegen'; ?></button>
-                        <?php if ( $editing ) echo '<a href="' . esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets' ) ) . '" class="wsu-btn-ghost">Annuleren</a>'; ?>
+                        <?php if ( $editing ) echo '<a href="' . esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets' ) ) . '" class="wsu-btn-ghost">Annuleren</a>'; ?>
                     </div>
                 </form>
             </div>
@@ -258,7 +263,7 @@ class WSU_Settings {
                             </div>
                         </div>
                         <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
-                            <a href="<?php echo esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets&edit=' . $id ) ); ?>" class="wsu-action-link">Bewerken</a>
+                            <a href="<?php echo esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets&edit=' . $id ) ); ?>" class="wsu-action-link">Bewerken</a>
                             <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:0;">
                                 <?php wp_nonce_field( 'wsu_delete_snippet' ); ?>
                                 <input type="hidden" name="action" value="wsu_delete_snippet">
@@ -288,7 +293,7 @@ class WSU_Settings {
                 <div class="wsu-section">
                     <h2>Losse code</h2>
                     <p>PHP code die <strong>alleen op deze website</strong> wordt uitgevoerd. Geen <code>&lt;?php</code> tag nodig.<br>
-                    <span style="color:#f59e0b;">⚠️ Dit is voor eenmalige aanpassingen. Voor herbruikbare code gebruik je het <a href="<?php echo esc_url( admin_url( 'admin.php?page=wescaleup-manager&tab=snippets' ) ); ?>">Snippets tabblad</a>.</span></p>
+                    <span style="color:#f59e0b;">⚠️ Dit is voor eenmalige aanpassingen. Voor herbruikbare code gebruik je het <a href="<?php echo esc_url( admin_url( 'plugins.php?page=wescaleup-manager&tab=snippets' ) ); ?>">Snippets tabblad</a>.</span></p>
                     <div class="wsu-editor-wrap">
                         <textarea id="wsu_custom_php" name="wsu_custom_php" rows="16"><?php echo esc_textarea( $custom_php ); ?></textarea>
                     </div>
