@@ -36,7 +36,7 @@ add_action( 'upgrader_process_complete', function ( $upgrader, $options ) {
     }
 }, 10, 2 );
 
-// ─── Auto-updater ────────────────────────────────────────────────────────────
+// ─── Auto-updater ──────────────────────────────────────────────────────────[...]
 require_once WSU_PLUGIN_DIR . 'includes/class-updater.php';
 new WSU_Updater( WSU_PLUGIN_FILE, WSU_GITHUB_REPO, WSU_VERSION );
 
@@ -48,7 +48,22 @@ add_filter( 'auto_update_plugin', function ( $update, $item ) {
     return $update;
 }, 10, 2 );
 
-// ─── Instellingen ─────────────────────────────────────────────────────────────
+// ─── Submenu onder Plugins pagina ─────────────────────────────────────────────
+add_action( 'admin_menu', function () {
+    add_submenu_page(
+        'plugins.php',
+        'WeScaleUp Manager',
+        'WeScaleUp Manager',
+        'manage_options',
+        'wescaleup-manager',
+        function () {
+            wp_safe_redirect( admin_url( 'admin.php?page=wescaleup-manager' ) );
+            exit;
+        }
+    );
+} );
+
+// ─── Instellingen ──────────────────────────────────────────────────────────[...]
 require_once WSU_PLUGIN_DIR . 'includes/class-settings.php';
 new WSU_Settings();
 
