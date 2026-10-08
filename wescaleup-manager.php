@@ -1,10 +1,10 @@
 <?php
 /**
- * Plugin Name: WeScaleUp Manager
+ * Plugin Name: WeScaleUp® Manager
  * Plugin URI:  https://github.com/wescaleup/snippets
  * Description: Beheert alle WeScaleUp standaardfunctionaliteit: branding, beveiliging en admin-instellingen.
- * Version:     9.0.0
- * Author:      WeScaleUp
+ * Version:     9.1.0
+ * Author:      WeScaleUp Group B.V.
  * Author URI:  https://wescaleup.nl
  * License:     Proprietary
  * Update URI:  https://api.github.com/repos/wescaleup/snippets/releases/latest
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WSU_VERSION',     '9.0.0' );
+define( 'WSU_VERSION',     '9.1.0' );
 define( 'WSU_PLUGIN_FILE', __FILE__ );
 define( 'WSU_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'WSU_GITHUB_REPO', 'wescaleup/snippets' );
