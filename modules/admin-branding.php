@@ -29,29 +29,35 @@ add_action( 'login_enqueue_scripts', function () {
 } );
 
 // ── Login-pagina: achtergrondafbeelding ───────────────────────────────────────
-add_action( 'login_head', function () {
-    $foto_url = get_option( 'wsu_login_foto', '' );
+// Hangt aan login_head (standaard wp-login.php) én password_protected_login_head
+// (Password Protected plugin gebruikt een eigen template zonder login_head).
+if ( ! function_exists( 'wsu_login_achtergrond' ) ) {
+    function wsu_login_achtergrond() {
+        $foto_url = get_option( 'wsu_login_foto', '' );
 
-    if ( empty( $foto_url ) ) {
-        $foto_url = 'https://code.wescaleup.nl/media/foto-login.jpg';
-    }
-
-    echo '<style>
-        body.login::after {
-            content: "";
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 100%;
-            background-image: url(' . esc_url( $foto_url ) . ') !important;
-            background-size: cover !important;
-            background-position: center center !important;
-            background-repeat: no-repeat !important;
-            z-index: 0;
+        if ( empty( $foto_url ) ) {
+            $foto_url = 'https://code.wescaleup.nl/media/foto-login.jpg';
         }
-    </style>';
-} );
+
+        echo '<style>
+            body.login::after {
+                content: "";
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 50%;
+                height: 100%;
+                background-image: url(' . esc_url( $foto_url ) . ') !important;
+                background-size: cover !important;
+                background-position: center center !important;
+                background-repeat: no-repeat !important;
+                z-index: 0;
+            }
+        </style>';
+    }
+}
+add_action( 'login_head', 'wsu_login_achtergrond' );
+add_action( 'password_protected_login_head', 'wsu_login_achtergrond' );
 
 add_filter( 'login_headerurl',  fn() => home_url() );
 add_filter( 'login_headertext', fn() => 'WeScaleUp' );
