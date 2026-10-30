@@ -442,6 +442,7 @@ class WSU_Settings {
             .wsu-login-mock-left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
             .wsu-login-mock-left img{max-width:140px;max-height:48px;object-fit:contain}
             .wsu-login-mock-form{width:130px;background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:6px}
+            .wsu-login-mock.is-bijna-wit .wsu-login-mock-form{background:#f3f4f6;border:1px solid #e5e7eb}
             .wsu-login-mock-form span{display:block;height:8px;border-radius:3px;background:#e5e7eb}
             .wsu-login-mock-form .wsu-login-mock-btn{width:40%;align-self:flex-end;background:#2271b1}
             .wsu-login-mock-right{flex:1;background-size:cover;background-position:center}
@@ -500,7 +501,19 @@ class WSU_Settings {
             function wsuSetKleur(kleur){
                 kleur = kleur || '<?php echo esc_js( self::LOGIN_KLEUR_DEFAULT ); ?>';
                 $('#wsu-login-mock, .wsu-login-preview--logo').css('background', kleur);
+                // Zelfde regel als op het inlogscherm: (bijna) wit = grijs formulier
+                $('#wsu-login-mock').toggleClass('is-bijna-wit', wsuLuminantie(kleur) > 0.85);
             }
+            function wsuLuminantie(hex){
+                hex = hex.replace('#', '');
+                if (hex.length === 3) hex = hex.replace(/(.)/g, '$1$1');
+                var k = [0, 2, 4].map(function(i){
+                    var c = parseInt(hex.substr(i, 2), 16) / 255;
+                    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+                });
+                return 0.2126 * k[0] + 0.7152 * k[1] + 0.0722 * k[2];
+            }
+            wsuSetKleur($('#wsu_login_kleur').val());
             if ($.fn.wpColorPicker) {
                 $('#wsu_login_kleur').wpColorPicker({
                     change: function(e, ui){ wsuSetKleur(ui.color.toString()); },
