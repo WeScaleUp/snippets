@@ -5,7 +5,7 @@ WordPress plugin die alle WeScaleUp standaardfunctionaliteit beheert voor klantw
 ## Functionaliteit
 
 - **Beveiliging** — XML-RPC uitgeschakeld, REST API beperkt tot ingelogde gebruikers, WordPress versienummer verborgen
-- **Admin branding** — WeScaleUp logo in de admin-balk, aangepaste footer, login-pagina huisstijl
+- **Admin branding** — WeScaleUp logo in de admin-balk, aangepaste footer, login-pagina huisstijl. Per website in te stellen via **WeScaleUp® → Login**: achtergrondkleur, logo en achtergrondfoto (leeg = standaard WeScaleUp)
 - **SVG uploads** — toegestaan voor administrators
 - **Reacties** — volledig uitgeschakeld en verborgen
 - **Wachtwoordpagina** — gestylde WeScaleUp wachtwoordpagina
