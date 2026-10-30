@@ -64,6 +64,13 @@ if ( ! function_exists( 'wsu_login_achtergrond' ) ) {
                 body.login { background: ' . esc_attr( $kleur ) . ' !important; }
                 .login #nav a, .login #backtoblog a { color: ' . esc_attr( $link_kleur ) . ' !important; }
             </style>';
+
+            // (Bijna) witte achtergrond? Dan een grijs formulier, anders is het wit op wit
+            if ( wsu_is_bijna_wit( $kleur ) ) {
+                echo '<style>
+                    .login form { background: #f3f4f6 !important; border: 1px solid #e5e7eb !important; }
+                </style>';
+            }
         }
 
         // ── Eigen logo (standaard blijft het WeScaleUp logo uit de huisstijl-CSS) ──
@@ -82,9 +89,9 @@ if ( ! function_exists( 'wsu_login_achtergrond' ) ) {
     }
 }
 
-// Bepaalt of een hex-kleur licht is (relatieve luminantie), voor leesbare tekst erop
-if ( ! function_exists( 'wsu_is_lichte_kleur' ) ) {
-    function wsu_is_lichte_kleur( string $hex ): bool {
+// Relatieve luminantie van een hex-kleur (0 = zwart, 1 = wit)
+if ( ! function_exists( 'wsu_luminantie' ) ) {
+    function wsu_luminantie( string $hex ): float {
         $hex = ltrim( $hex, '#' );
         if ( strlen( $hex ) === 3 ) {
             $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
@@ -93,7 +100,21 @@ if ( ! function_exists( 'wsu_is_lichte_kleur' ) ) {
             $c = hexdec( $c ) / 255;
             return $c <= 0.03928 ? $c / 12.92 : pow( ( $c + 0.055 ) / 1.055, 2.4 );
         }, str_split( $hex, 2 ) );
-        $luminantie = 0.2126 * $kanalen[0] + 0.7152 * $kanalen[1] + 0.0722 * $kanalen[2];
+        return 0.2126 * $kanalen[0] + 0.7152 * $kanalen[1] + 0.0722 * $kanalen[2];
+    }
+}
+
+// Is de kleur zo licht dat een wit formulier erop wegvalt?
+if ( ! function_exists( 'wsu_is_bijna_wit' ) ) {
+    function wsu_is_bijna_wit( string $hex ): bool {
+        return wsu_luminantie( $hex ) > 0.85;
+    }
+}
+
+// Bepaalt of een hex-kleur licht is, voor leesbare tekst erop
+if ( ! function_exists( 'wsu_is_lichte_kleur' ) ) {
+    function wsu_is_lichte_kleur( string $hex ): bool {
+        $luminantie = wsu_luminantie( $hex );
 
         // Licht = navy tekst geeft meer contrast dan witte tekst (WCAG-contrastverhouding)
         $contrast_wit  = 1.05 / ( $luminantie + 0.05 );
