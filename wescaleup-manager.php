@@ -3,7 +3,7 @@
  * Plugin Name: WeScaleUp® Manager
  * Plugin URI:  https://github.com/wescaleup/snippets
  * Description: Beheert alle WeScaleUp standaardfunctionaliteit: branding, beveiliging en admin-instellingen.
- * Version:     9.5
+ * Version:     9.6
  * Author:      WeScaleUp Group B.V.
  * Author URI:  https://wescaleup.nl
  * License:     Proprietary
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'WSU_VERSION',     '9.5' );
+define( 'WSU_VERSION',     '9.6' );
 define( 'WSU_PLUGIN_FILE', __FILE__ );
 define( 'WSU_PLUGIN_DIR',  plugin_dir_path( __FILE__ ) );
 define( 'WSU_GITHUB_REPO', 'wescaleup/snippets' );
