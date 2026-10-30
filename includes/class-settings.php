@@ -7,6 +7,10 @@ class WSU_Settings {
     const CUSTOM_PHP_KEY = 'wsu_custom_php';
     const SNIPPETS_KEY   = 'wsu_snippets';
 
+    // Standaard login-huisstijl van WeScaleUp (gebruikt als er niets is ingesteld)
+    const LOGIN_KLEUR_DEFAULT = '#000B41';
+    const LOGIN_LOGO_DEFAULT  = 'https://code.wescaleup.nl/media/logo-login.jpg';
+
     public static function modules(): array {
         return [
             'beveiliging'    => [ 'label' => 'Beveiliging',           'desc' => 'XML-RPC uitgeschakeld, REST API beperkt, versienummer verborgen',        'icon' => '🔒' ],
@@ -113,8 +117,10 @@ class WSU_Settings {
         wp_enqueue_code_editor( [ 'type' => 'text/x-php' ] );
         wp_enqueue_script( 'wp-theme-plugin-editor' );
         wp_enqueue_style( 'wp-codemirror' );
-        // Media uploader voor login foto
+        // Media uploader voor login foto en logo, kleurkiezer voor login kleur
         wp_enqueue_media();
+        wp_enqueue_style( 'wp-color-picker' );
+        wp_enqueue_script( 'wp-color-picker' );
     }
 
     public function save_settings(): void {
@@ -137,6 +143,16 @@ class WSU_Settings {
         if ( $tab === 'login' ) {
             $login_foto = isset( $_POST['wsu_login_foto'] ) ? esc_url_raw( wp_unslash( $_POST['wsu_login_foto'] ) ) : '';
             update_option( 'wsu_login_foto', $login_foto );
+
+            $login_logo = isset( $_POST['wsu_login_logo'] ) ? esc_url_raw( wp_unslash( $_POST['wsu_login_logo'] ) ) : '';
+            update_option( 'wsu_login_logo', $login_logo );
+
+            // Leeg of gelijk aan de standaardkleur = geen eigen kleur opslaan
+            $login_kleur = isset( $_POST['wsu_login_kleur'] ) ? sanitize_hex_color( wp_unslash( $_POST['wsu_login_kleur'] ) ) : '';
+            if ( ! $login_kleur || strtolower( $login_kleur ) === strtolower( self::LOGIN_KLEUR_DEFAULT ) ) {
+                $login_kleur = '';
+            }
+            update_option( 'wsu_login_kleur', $login_kleur );
         }
 
         add_action( 'admin_notices', function () { echo '<div class="notice notice-success is-dismissible"><p>✅ Instellingen opgeslagen.</p></div>'; } );
@@ -189,7 +205,9 @@ class WSU_Settings {
         $disabled   = get_option( self::OPTION_KEY, [] );
         $snippets   = self::get_snippets();
         $custom_php = get_option( self::CUSTOM_PHP_KEY, '' );
-        $login_foto = get_option( 'wsu_login_foto', '' );
+        $login_foto  = get_option( 'wsu_login_foto', '' );
+        $login_logo  = get_option( 'wsu_login_logo', '' );
+        $login_kleur = get_option( 'wsu_login_kleur', '' ) ?: self::LOGIN_KLEUR_DEFAULT;
         $editing    = ( $edit_id && isset( $snippets[ $edit_id ] ) ) ? $snippets[ $edit_id ] : null;
 
         $svg_logo = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 6991 5346" style="height:36px;fill:#000B41;fill-rule:evenodd;clip-rule:evenodd;"><path d="M2171.801,491.308l-152.688,939.946l871.125,141.513l152.692,-939.946l-871.129,-141.513Z"/><path d="M13.551,2736.462l259.154,-1595.508c17.429,-107.583 117.525,-179.625 225.108,-162.054l489.167,79.392c107.446,17.433 179.621,117.525 162.192,224.975l-207.133,1274.525c-51.475,317.304 116.846,504.554 358.838,543.912c252.754,40.854 462.75,-96.008 512.454,-402.417l206.862,-1274.529c17.567,-107.446 117.525,-179.625 219.662,-163.008l489.3,79.529c107.583,17.429 179.763,117.388 162.192,224.971l-259.154,1595.513c-97.371,599.608 -600.288,963.621 -1473.217,813.55c-786.588,-127.738 -1245.25,-623.442 -1145.425,-1238.85" fill-rule="nonzero"/><path d="M3228.343,701.579l-484.946,-672.875c-22.196,-30.917 -65.229,-37.996 -96.279,-15.662l-672.875,484.808c-49.846,35.95 -31.325,114.254 29.279,124.196l1157.817,187.933c60.604,9.942 103.092,-58.558 67.004,-108.4" fill-rule="nonzero"/><path d="M5357.26,3169.875c55.017,-338.683 -125.288,-621.804 -485.354,-680.363c-328.2,-53.25 -622.079,125.287 -681.454,490.8c-58.558,360.338 163.825,622.758 491.887,675.871c360.204,58.558 620.854,-152.933 674.921,-486.308m881.912,143.267c-115.346,709.779 -688.533,1350.788 -1538.037,1212.7c-365.65,-59.375 -585.858,-233.142 -714.821,-458.254l-181.667,1118.467c-16.479,102.133 -116.571,174.175 -224.154,156.742l-489.442,-79.529c-102.133,-16.613 -174.037,-116.571 -157.562,-218.571l549.358,-3382.354c17.433,-107.583 117.525,-179.625 219.663,-163.008l537.783,87.292c80.621,13.075 134.55,88.108 121.475,168.729l-20.021,123.654c193.654,-172.679 457.438,-267.871 823.088,-208.496c849.5,137.954 1190.5,927.4 1074.338,1642.629" fill-rule="nonzero"/></svg>';
@@ -334,32 +352,52 @@ class WSU_Settings {
             <form method="post" action="">
                 <?php wp_nonce_field( 'wsu_settings_save' ); ?>
                 <input type="hidden" name="wsu_current_tab" value="login">
+
                 <div class="wsu-section">
-                    <h2>Login achtergrondafbeelding</h2>
-                    <p>Stel een afbeelding in voor het inlogscherm van <strong>deze website</strong>. Laat leeg om de standaard WeScaleUp foto te gebruiken.</p>
+                    <h2>Voorbeeld</h2>
+                    <p>Zo ziet het inlogscherm van <strong>deze website</strong> er ongeveer uit. Alles wat je leeg laat, blijft de standaard WeScaleUp huisstijl.</p>
+                    <div class="wsu-login-mock" id="wsu-login-mock" style="background:<?php echo esc_attr( $login_kleur ); ?>">
+                        <div class="wsu-login-mock-left">
+                            <img id="wsu-mock-logo" src="<?php echo esc_url( $login_logo ?: self::LOGIN_LOGO_DEFAULT ); ?>" alt="">
+                            <div class="wsu-login-mock-form"><span></span><span></span><span class="wsu-login-mock-btn"></span></div>
+                        </div>
+                        <div class="wsu-login-mock-right" id="wsu-mock-foto" style="background-image:url('<?php echo esc_url( $login_foto ?: 'https://code.wescaleup.nl/media/foto-login.jpg' ); ?>')"></div>
+                    </div>
+                </div>
 
-                    <div class="wsu-login-foto-wrap">
-                        <?php if ( $login_foto ) : ?>
-                            <div class="wsu-login-preview">
-                                <img src="<?php echo esc_url( $login_foto ); ?>" alt="Login achtergrond">
-                            </div>
-                        <?php else : ?>
-                            <div class="wsu-login-preview wsu-login-preview--default">
-                                <span>Standaard WeScaleUp foto</span>
-                            </div>
-                        <?php endif; ?>
+                <div class="wsu-section">
+                    <h2>Achtergrondkleur</h2>
+                    <p>De kleur achter het inlogformulier. Handig om de huisstijlkleur van de klant te laten zien. Standaard is dit WeScaleUp navy (<code><?php echo esc_html( self::LOGIN_KLEUR_DEFAULT ); ?></code>).</p>
+                    <input type="text" id="wsu_login_kleur" name="wsu_login_kleur" value="<?php echo esc_attr( $login_kleur ); ?>" data-default-color="<?php echo esc_attr( self::LOGIN_KLEUR_DEFAULT ); ?>">
+                    <p class="wsu-hint">De linkkleur onder het formulier past zich automatisch aan, zodat hij ook op een lichte kleur leesbaar blijft. Met "Standaard" zet je de kleur terug naar WeScaleUp.</p>
+                </div>
 
+                <div class="wsu-section">
+                    <h2>Logo</h2>
+                    <p>Het logo boven het inlogformulier. Laat leeg om het standaard WeScaleUp logo te gebruiken. Een liggend logo (PNG of SVG met transparante achtergrond) werkt het best.</p>
+                    <div class="wsu-media-field" data-target="wsu_login_logo" data-title="Login logo kiezen" data-empty="Standaard WeScaleUp logo" data-mock="logo">
+                        <div class="wsu-login-preview wsu-login-preview--logo <?php echo $login_logo ? '' : 'wsu-login-preview--default'; ?>" style="background:<?php echo esc_attr( $login_kleur ); ?>">
+                            <?php echo $login_logo ? '<img src="' . esc_url( $login_logo ) . '" alt="Login logo">' : '<span>Standaard WeScaleUp logo</span>'; ?>
+                        </div>
+                        <input type="hidden" id="wsu_login_logo" name="wsu_login_logo" value="<?php echo esc_attr( $login_logo ); ?>">
+                        <div class="wsu-media-buttons">
+                            <button type="button" class="wsu-btn wsu-media-upload">📁 Logo kiezen</button>
+                            <button type="button" class="wsu-btn-ghost wsu-media-remove" <?php echo $login_logo ? '' : 'style="display:none"'; ?>>Terug naar standaard</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wsu-section">
+                    <h2>Achtergrondafbeelding</h2>
+                    <p>De foto aan de rechterkant van het inlogscherm. Laat leeg om de standaard WeScaleUp foto te gebruiken.</p>
+                    <div class="wsu-media-field" data-target="wsu_login_foto" data-title="Login achtergrondafbeelding kiezen" data-empty="Standaard WeScaleUp foto" data-mock="foto">
+                        <div class="wsu-login-preview <?php echo $login_foto ? '' : 'wsu-login-preview--default'; ?>">
+                            <?php echo $login_foto ? '<img src="' . esc_url( $login_foto ) . '" alt="Login achtergrond">' : '<span>Standaard WeScaleUp foto</span>'; ?>
+                        </div>
                         <input type="hidden" id="wsu_login_foto" name="wsu_login_foto" value="<?php echo esc_attr( $login_foto ); ?>">
-
-                        <div style="display:flex;gap:10px;margin-top:12px;">
-                            <button type="button" id="wsu-upload-foto" class="wsu-btn">
-                                📁 Afbeelding kiezen
-                            </button>
-                            <?php if ( $login_foto ) : ?>
-                                <button type="button" id="wsu-remove-foto" class="wsu-btn-ghost">
-                                    Verwijderen
-                                </button>
-                            <?php endif; ?>
+                        <div class="wsu-media-buttons">
+                            <button type="button" class="wsu-btn wsu-media-upload">📁 Afbeelding kiezen</button>
+                            <button type="button" class="wsu-btn-ghost wsu-media-remove" <?php echo $login_foto ? '' : 'style="display:none"'; ?>>Terug naar standaard</button>
                         </div>
                     </div>
                 </div>
@@ -394,6 +432,19 @@ class WSU_Settings {
             .wsu-login-preview{width:100%;max-width:400px;height:200px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;background:#f9fafb;margin-bottom:4px;}
             .wsu-login-preview img{width:100%;height:100%;object-fit:cover;display:block;}
             .wsu-login-preview--default{display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:13px;}
+            .wsu-login-preview--logo{height:120px;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+            .wsu-login-preview--logo img{width:auto;max-width:100%;height:auto;max-height:100%;object-fit:contain}
+            .wsu-login-preview--logo.wsu-login-preview--default span{color:rgba(255,255,255,.75)}
+            .wsu-media-buttons{display:flex;gap:10px;margin-top:12px}
+            .wsu-hint{margin:12px 0 0;color:#6b7280;font-size:12px}
+            /* Login voorbeeld */
+            .wsu-login-mock{display:flex;max-width:520px;height:220px;border-radius:10px;overflow:hidden;border:1px solid #e5e7eb;transition:background .2s}
+            .wsu-login-mock-left{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+            .wsu-login-mock-left img{max-width:140px;max-height:48px;object-fit:contain}
+            .wsu-login-mock-form{width:130px;background:#fff;border-radius:6px;padding:12px;display:flex;flex-direction:column;gap:6px}
+            .wsu-login-mock-form span{display:block;height:8px;border-radius:3px;background:#e5e7eb}
+            .wsu-login-mock-form .wsu-login-mock-btn{width:40%;align-self:flex-end;background:#2271b1}
+            .wsu-login-mock-right{flex:1;background-size:cover;background-position:center}
             .wsu-module-info strong{display:block;font-size:13px;margin-bottom:2px}
             .wsu-module-info span{font-size:12px;color:#6b7280}
             .wsu-toggle{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
@@ -434,38 +485,65 @@ class WSU_Settings {
             initEditor('wsu_custom_php');
             initEditor('wsu_snippet_code');
 
-            // Media uploader voor login foto
-            var mediaUploader;
-            $('#wsu-upload-foto').on('click', function(e){
-                e.preventDefault();
-                if (mediaUploader) { mediaUploader.open(); return; }
-                mediaUploader = wp.media({
-                    title: 'Login achtergrondafbeelding kiezen',
-                    button: { text: 'Afbeelding gebruiken' },
-                    multiple: false,
-                    library: { type: 'image' }
-                });
-                mediaUploader.on('select', function(){
-                    var attachment = mediaUploader.state().get('selection').first().toJSON();
-                    $('#wsu_login_foto').val(attachment.url);
-                    var $preview = $('.wsu-login-preview');
-                    $preview.html('<img src="'+attachment.url+'" alt="">').removeClass('wsu-login-preview--default');
-                    if (!$('#wsu-remove-foto').length) {
-                        $('<button type="button" id="wsu-remove-foto" class="wsu-btn-ghost">Verwijderen</button>')
-                            .insertAfter('#wsu-upload-foto')
-                            .on('click', wsuRemoveFoto);
-                    }
-                });
-                mediaUploader.open();
-            });
-
-            function wsuRemoveFoto(e){
-                e.preventDefault();
-                $('#wsu_login_foto').val('');
-                $('.wsu-login-preview').html('<span>Standaard WeScaleUp foto</span>').addClass('wsu-login-preview--default');
-                $('#wsu-remove-foto').remove();
+            // ── Login: standaardwaarden voor het voorbeeld ──
+            var wsuDefaults = {
+                logo: <?php echo wp_json_encode( self::LOGIN_LOGO_DEFAULT ); ?>,
+                foto: 'https://code.wescaleup.nl/media/foto-login.jpg'
+            };
+            function wsuUpdateMock(type, url){
+                url = url || wsuDefaults[type];
+                if (type === 'logo') $('#wsu-mock-logo').attr('src', url);
+                if (type === 'foto') $('#wsu-mock-foto').css('background-image', 'url("' + url + '")');
             }
-            $('#wsu-remove-foto').on('click', wsuRemoveFoto);
+
+            // ── Login: kleurkiezer ──
+            function wsuSetKleur(kleur){
+                kleur = kleur || '<?php echo esc_js( self::LOGIN_KLEUR_DEFAULT ); ?>';
+                $('#wsu-login-mock, .wsu-login-preview--logo').css('background', kleur);
+            }
+            if ($.fn.wpColorPicker) {
+                $('#wsu_login_kleur').wpColorPicker({
+                    change: function(e, ui){ wsuSetKleur(ui.color.toString()); },
+                    clear:  function(){ wsuSetKleur(''); }
+                });
+            }
+
+            // ── Login: mediakiezers (logo en achtergrondfoto) ──
+            $('.wsu-media-field').each(function(){
+                var $field   = $(this),
+                    $input   = $('#' + $field.data('target')),
+                    $preview = $field.find('.wsu-login-preview'),
+                    $remove  = $field.find('.wsu-media-remove'),
+                    type     = $field.data('mock'),
+                    frame;
+
+                $field.find('.wsu-media-upload').on('click', function(e){
+                    e.preventDefault();
+                    if (frame) { frame.open(); return; }
+                    frame = wp.media({
+                        title: $field.data('title'),
+                        button: { text: 'Afbeelding gebruiken' },
+                        multiple: false,
+                        library: { type: 'image' }
+                    });
+                    frame.on('select', function(){
+                        var url = frame.state().get('selection').first().toJSON().url;
+                        $input.val(url);
+                        $preview.removeClass('wsu-login-preview--default').empty().append($('<img alt="">').attr('src', url));
+                        $remove.show();
+                        wsuUpdateMock(type, url);
+                    });
+                    frame.open();
+                });
+
+                $remove.on('click', function(e){
+                    e.preventDefault();
+                    $input.val('');
+                    $preview.addClass('wsu-login-preview--default').empty().append($('<span>').text($field.data('empty')));
+                    $remove.hide();
+                    wsuUpdateMock(type, '');
+                });
+            });
         });
         </script>
         <?php

@@ -54,10 +54,56 @@ if ( ! function_exists( 'wsu_login_achtergrond' ) ) {
                 z-index: 0;
             }
         </style>';
+
+        // ── Eigen achtergrondkleur (bijv. huisstijlkleur van de klant) ──
+        $kleur = sanitize_hex_color( get_option( 'wsu_login_kleur', '' ) );
+        if ( $kleur ) {
+            // Lichte kleur? Dan donkere links onder het formulier, anders wit
+            $link_kleur = wsu_is_lichte_kleur( $kleur ) ? '#000B41' : '#ffffff';
+            echo '<style>
+                body.login { background: ' . esc_attr( $kleur ) . ' !important; }
+                .login #nav a, .login #backtoblog a { color: ' . esc_attr( $link_kleur ) . ' !important; }
+            </style>';
+        }
+
+        // ── Eigen logo (standaard blijft het WeScaleUp logo uit de huisstijl-CSS) ──
+        $logo = get_option( 'wsu_login_logo', '' );
+        if ( $logo ) {
+            echo '<style>
+                .login h1 a {
+                    background-image: url(' . esc_url( $logo ) . ') !important;
+                    background-size: contain !important;
+                    background-position: center center !important;
+                    background-repeat: no-repeat !important;
+                    width: 100% !important;
+                }
+            </style>';
+        }
+    }
+}
+
+// Bepaalt of een hex-kleur licht is (relatieve luminantie), voor leesbare tekst erop
+if ( ! function_exists( 'wsu_is_lichte_kleur' ) ) {
+    function wsu_is_lichte_kleur( string $hex ): bool {
+        $hex = ltrim( $hex, '#' );
+        if ( strlen( $hex ) === 3 ) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        $kanalen = array_map( function ( $c ) {
+            $c = hexdec( $c ) / 255;
+            return $c <= 0.03928 ? $c / 12.92 : pow( ( $c + 0.055 ) / 1.055, 2.4 );
+        }, str_split( $hex, 2 ) );
+        $luminantie = 0.2126 * $kanalen[0] + 0.7152 * $kanalen[1] + 0.0722 * $kanalen[2];
+
+        // Licht = navy tekst geeft meer contrast dan witte tekst (WCAG-contrastverhouding)
+        $contrast_wit  = 1.05 / ( $luminantie + 0.05 );
+        $contrast_navy = ( $luminantie + 0.05 ) / ( 0.0055 + 0.05 ); // luminantie #000B41 ≈ 0.0055
+        return $contrast_navy > $contrast_wit;
     }
 }
 add_action( 'login_head', 'wsu_login_achtergrond' );
 add_action( 'password_protected_login_head', 'wsu_login_achtergrond' );
 
 add_filter( 'login_headerurl',  fn() => home_url() );
-add_filter( 'login_headertext', fn() => 'WeScaleUp' );
+// Met een eigen logo hoort de klantnaam bij het logo, anders WeScaleUp
+add_filter( 'login_headertext', fn() => get_option( 'wsu_login_logo', '' ) ? get_bloginfo( 'name' ) : 'WeScaleUp' );
