@@ -7,7 +7,8 @@ add_action( 'admin_bar_menu', function ( $wp_admin_bar ) {
 
     $wp_admin_bar->add_node( [
         'id'    => 'wp-logo',
-        'title' => '<img src="https://wescaleup.nl/wp-content/uploads/2025/03/Ontwerp-zonder-titel-24.png" style="height:20px; margin-top:6px;">',
+        // Zelfde logo als het pluginmenu in het dashboard; wit op de donkere adminbalk.
+        'title' => WSU_Settings::logo_svg( 'height:20px;width:auto;margin-top:6px;vertical-align:top;fill:#fff;fill-rule:evenodd;clip-rule:evenodd;' ),
         'href'  => admin_url(),
         'meta'  => [ 'title' => 'Dashboard' ],
     ] );
